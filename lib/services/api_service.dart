@@ -1,0 +1,39 @@
+import 'package:dio/dio.dart';
+import '../models/song.dart';
+
+class ApiService {
+  final Dio _dio;
+
+  // Assuming Go backend is running locally on port 8080.
+  // For Android emulator, use 10.0.2.2. For Windows/iOS simulator, use localhost.
+  static const String baseUrl = 'http://localhost:8080/api/v1';
+
+  ApiService() : _dio = Dio(BaseOptions(baseUrl: baseUrl, connectTimeout: const Duration(seconds: 10)));
+
+  Future<List<Song>> searchSongs(String query) async {
+    try {
+      final response = await _dio.get('/search', queryParameters: {'q': query});
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as List;
+        return data.map((json) => Song.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to search songs: $e');
+    }
+  }
+
+  Future<String> resolveStreamUrl(String videoId, {bool isVideo = false}) async {
+    try {
+      final type = isVideo ? 'video' : 'audio';
+      final response = await _dio.get('/resolve/$videoId', queryParameters: {'format': type});
+      if (response.statusCode == 200) {
+        final data = response.data['data'];
+        return data['stream_url'] as String;
+      }
+      throw Exception('Failed to resolve stream URL');
+    } catch (e) {
+      throw Exception('Resolve error: $e');
+    }
+  }
+}

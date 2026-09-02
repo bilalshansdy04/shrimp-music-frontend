@@ -81,8 +81,8 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
 
     try {
       final api = _ref.read(apiServiceProvider);
-      // Determine if we should request video format
-      final streamUrl = await api.resolveStreamUrl(song.id, isVideo: true); 
+      // Determine if we should request video format (now false for Spotify-like behavior)
+      final streamUrl = await api.resolveStreamUrl(song.id, isVideo: false); 
       await _player.open(Media(streamUrl));
       await _player.play();
     } catch (e) {

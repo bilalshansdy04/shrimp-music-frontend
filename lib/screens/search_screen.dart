@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/search_provider.dart';
+import '../providers/player_provider.dart';
 import '../theme/glassmorphism.dart';
 import 'dart:async';
 
@@ -89,9 +90,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 trailing: IconButton(
                   icon: const Icon(Icons.play_circle_fill, color: Colors.white),
                   onPressed: () {
-                    // TODO: Play song logic here
+                    ref.read(playerProvider.notifier).play(song);
                   },
                 ),
+                onTap: () {
+                  ref.read(playerProvider.notifier).play(song);
+                },
               );
             },
           );

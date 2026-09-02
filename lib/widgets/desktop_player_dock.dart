@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/glassmorphism.dart';
+import '../providers/player_provider.dart';
 
-class DesktopPlayerDock extends StatelessWidget {
+class DesktopPlayerDock extends ConsumerWidget {
   const DesktopPlayerDock({Key? key}) : super(key: key);
 
+  String _formatDuration(Duration d) {
+    String minutes = d.inMinutes.toString();
+    String seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return "$minutes:$seconds";
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final playerState = ref.watch(playerProvider);
+    final song = playerState.currentSong;
+    
+    // Calculate progress (0.0 to 1.0)
+    double progress = 0.0;
+    if (playerState.duration.inMilliseconds > 0) {
+      progress = playerState.position.inMilliseconds / playerState.duration.inMilliseconds;
+    }
+
     return GlassContainer(
       blur: 30.0,
       opacity: 0.05,
@@ -28,32 +45,42 @@ class DesktopPlayerDock extends StatelessWidget {
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: const Icon(Icons.music_note, color: Colors.white54),
+                    child: song != null && song.thumbnail.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.network(song.thumbnail, fit: BoxFit.cover),
+                          )
+                        : const Icon(Icons.music_note, color: Colors.white54),
                   ),
                   const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Not Playing",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          song?.title ?? "Not Playing",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "-",
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
-                          fontSize: 12,
+                        const SizedBox(height: 4),
+                        Text(
+                          song?.artist ?? "-",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.6),
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 16),
                   IconButton(
                     icon: const Icon(Icons.favorite_border),
                     color: Colors.white54,
@@ -86,15 +113,27 @@ class DesktopPlayerDock extends StatelessWidget {
                       ),
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 8),
+                        width: 36,
+                        height: 36,
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: IconButton(
-                          icon: const Icon(Icons.play_arrow),
-                          color: Colors.black,
-                          onPressed: () {},
-                        ),
+                        child: playerState.isLoading
+                            ? const Padding(
+                                padding: EdgeInsets.all(10.0),
+                                child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2.0),
+                              )
+                            : IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Icon(playerState.isPlaying ? Icons.pause : Icons.play_arrow),
+                                color: Colors.black,
+                                onPressed: () {
+                                  if (song != null) {
+                                    ref.read(playerProvider.notifier).togglePlayPause();
+                                  }
+                                },
+                              ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.skip_next),
@@ -112,29 +151,49 @@ class DesktopPlayerDock extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text("0:00", style: TextStyle(color: Colors.white54, fontSize: 11)),
+                      Text(_formatDuration(playerState.position), style: const TextStyle(color: Colors.white54, fontSize: 11)),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.white24,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Container(
-                              width: 0, // dynamic width later
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(2),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return GestureDetector(
+                              onTapDown: (details) {
+                                if (playerState.duration.inMilliseconds > 0) {
+                                  final percent = details.localPosition.dx / constraints.maxWidth;
+                                  final targetMs = (percent * playerState.duration.inMilliseconds).round();
+                                  ref.read(playerProvider.notifier).seek(Duration(milliseconds: targetMs));
+                                }
+                              },
+                              child: Container(
+                                height: 16, // easy to touch
+                                color: Colors.transparent,
+                                child: Center(
+                                  child: Container(
+                                    height: 4,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white24,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        width: constraints.maxWidth * progress,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          }
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text("0:00", style: TextStyle(color: Colors.white54, fontSize: 11)),
+                      Text(_formatDuration(playerState.duration), style: const TextStyle(color: Colors.white54, fontSize: 11)),
                     ],
                   ),
                 ],

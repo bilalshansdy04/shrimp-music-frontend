@@ -17,15 +17,4 @@ class MiniPlayerMobile extends StatelessWidget {
   }
 }
 
-class DesktopPlayerDock extends StatelessWidget {
-  const DesktopPlayerDock({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 90,
-      color: Colors.black87,
-      child: const Center(child: Text("Persistent Bottom Control Bar (Desktop)", style: TextStyle(color: Colors.white))),
-    );
-  }
-}

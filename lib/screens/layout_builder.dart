@@ -3,6 +3,7 @@ import 'home_screen.dart';
 import '../widgets/bottom_nav_mobile.dart';
 import '../widgets/sidebar_desktop.dart';
 import '../widgets/mini_player.dart';
+import '../widgets/desktop_player_dock.dart';
 
 class ResponsiveLayoutBuilder extends StatelessWidget {
   const ResponsiveLayoutBuilder({Key? key}) : super(key: key);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:palette_generator/palette_generator.dart';
 import '../models/song.dart';
 import 'search_provider.dart';
@@ -43,9 +44,12 @@ class PlayerState {
 
 class PlayerNotifier extends StateNotifier<PlayerState> {
   final Player _player;
+  late final VideoController videoController;
   final Ref _ref;
 
   PlayerNotifier(this._ref) : _player = Player(), super(PlayerState()) {
+    videoController = VideoController(_player);
+    
     _player.stream.playing.listen((playing) {
       if (mounted) state = state.copyWith(isPlaying: playing, isLoading: false);
     });
@@ -64,15 +68,14 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
   Future<void> play(Song song) async {
     state = state.copyWith(currentSong: song, isLoading: true);
     
-    // Extract dominant color from thumbnail asynchronously
     if (song.thumbnail.isNotEmpty) {
       _extractDominantColor(song.thumbnail);
     }
 
     try {
       final api = _ref.read(apiServiceProvider);
-      // Panggil backend resolver untuk mendapatkan URL stream langsung
-      final streamUrl = await api.resolveStreamUrl(song.id);
+      // Determine if we should request video format
+      final streamUrl = await api.resolveStreamUrl(song.id, isVideo: true); 
       await _player.open(Media(streamUrl));
       await _player.play();
     } catch (e) {
@@ -113,4 +116,8 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
 
 final playerProvider = StateNotifierProvider<PlayerNotifier, PlayerState>((ref) {
   return PlayerNotifier(ref);
+});
+
+final videoControllerProvider = Provider<VideoController>((ref) {
+  return ref.watch(playerProvider.notifier).videoController;
 });

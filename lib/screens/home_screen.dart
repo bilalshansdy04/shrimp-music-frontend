@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'search_screen.dart';
+import '../widgets/video_player_view.dart';
+import '../providers/player_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final playerState = ref.watch(playerProvider);
+
     return CustomScrollView(
       slivers: [
         SliverAppBar(
           floating: true,
-          title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: Colors.transparent,
+          title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           actions: [
             IconButton(
-              icon: const Icon(Icons.search),
+              icon: const Icon(Icons.search, color: Colors.white),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -25,14 +31,45 @@ class HomeScreen extends StatelessWidget {
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Editorial Hero Banner / Discovery Grid',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            padding: const EdgeInsets.all(24.0),
+            child: playerState.currentSong != null
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Now Playing",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Video Surface
+                      const AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: VideoPlayerView(),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Good Evening',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Center(
+                        child: Text("Search for a song to start playing", style: TextStyle(color: Colors.white54)),
+                      )
+                    ],
+                  ),
           ),
         ),
-        // Add content later
       ],
     );
   }

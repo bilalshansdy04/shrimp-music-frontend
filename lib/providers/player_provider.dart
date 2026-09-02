@@ -43,13 +43,11 @@ class PlayerState {
 }
 
 class PlayerNotifier extends StateNotifier<PlayerState> {
-  final Player _player;
-  late final VideoController videoController;
+  final Player _player = Player();
+  late final VideoController videoController = VideoController(_player);
   final Ref _ref;
 
-  PlayerNotifier(this._ref) : _player = Player(), super(PlayerState()) {
-    videoController = VideoController(_player);
-    
+  PlayerNotifier(this._ref) : super(PlayerState()) {
     _player.stream.playing.listen((playing) {
       if (mounted) state = state.copyWith(isPlaying: playing, isLoading: false);
     });

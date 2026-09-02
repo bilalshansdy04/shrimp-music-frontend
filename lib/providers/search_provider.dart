@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/song.dart';
+import '../models/universal_search_data.dart';
 import '../services/api_service.dart';
 
 final apiServiceProvider = Provider<ApiService>((ref) {
@@ -8,10 +8,10 @@ final apiServiceProvider = Provider<ApiService>((ref) {
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
-final searchResultsProvider = FutureProvider<List<Song>>((ref) async {
+final searchResultsProvider = FutureProvider<UniversalSearchData>((ref) async {
   final query = ref.watch(searchQueryProvider);
   if (query.trim().isEmpty) {
-    return []; // Return empty list if query is empty
+    return UniversalSearchData(tracks: [], artists: [], albums: []);
   }
   
   final api = ref.read(apiServiceProvider);

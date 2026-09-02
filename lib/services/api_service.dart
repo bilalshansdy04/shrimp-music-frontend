@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../models/song.dart';
+import '../models/universal_search_data.dart';
 
 class ApiService {
   final Dio _dio;
@@ -10,16 +11,16 @@ class ApiService {
 
   ApiService() : _dio = Dio(BaseOptions(baseUrl: baseUrl, connectTimeout: const Duration(seconds: 10)));
 
-  Future<List<Song>> searchSongs(String query) async {
+  Future<UniversalSearchData> searchSongs(String query) async {
     try {
-      final response = await _dio.get('/search', queryParameters: {'q': query});
+      final response = await _dio.get('/search', queryParameters: {'q': query, 'type': 'all'});
       if (response.statusCode == 200) {
-        final data = response.data['data'] as List;
-        return data.map((json) => Song.fromJson(json)).toList();
+        final data = response.data['data'] as Map<String, dynamic>;
+        return UniversalSearchData.fromJson(data);
       }
-      return [];
+      return UniversalSearchData(tracks: [], artists: [], albums: []);
     } catch (e) {
-      throw Exception('Failed to search songs: $e');
+      throw Exception('Failed to search: $e');
     }
   }
 

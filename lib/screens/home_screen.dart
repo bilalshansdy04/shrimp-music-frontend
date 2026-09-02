@@ -54,7 +54,7 @@ class HomeScreen extends ConsumerWidget {
                                 decoration: BoxDecoration(
                                   color: Colors.black26,
                                   borderRadius: BorderRadius.circular(16.0),
-                                  image: playerState.currentSong?.thumbnail.isNotEmpty == true
+                                  image: (playerState.currentSong?.thumbnail.isNotEmpty ?? false)
                                       ? DecorationImage(
                                           image: NetworkImage(playerState.currentSong!.thumbnail),
                                           fit: BoxFit.cover,
@@ -68,7 +68,7 @@ class HomeScreen extends ConsumerWidget {
                                     )
                                   ],
                                 ),
-                                child: playerState.currentSong?.thumbnail.isEmpty == true
+                                child: (playerState.currentSong?.thumbnail.isEmpty ?? true)
                                     ? const Center(child: Icon(Icons.music_note, size: 64, color: Colors.white24))
                                     : null,
                               ),

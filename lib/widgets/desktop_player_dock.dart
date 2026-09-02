@@ -45,7 +45,7 @@ class DesktopPlayerDock extends ConsumerWidget {
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: song != null && song.thumbnail.isNotEmpty
+                    child: (song != null && song.thumbnail.isNotEmpty)
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
                             child: Image.network(song.thumbnail, fit: BoxFit.cover),

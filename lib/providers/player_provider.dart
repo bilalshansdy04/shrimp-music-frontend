@@ -63,7 +63,7 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
     });
     _player.stream.videoParams.listen((params) {
       if (mounted) {
-        state = state.copyWith(hasVideo: params.w != null && params.w! > 0);
+        state = state.copyWith(hasVideo: (params.w ?? 0) > 0);
       }
     });
     _player.stream.error.listen((error) {

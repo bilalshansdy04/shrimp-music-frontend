@@ -5,8 +5,8 @@ class ApiService {
   final Dio _dio;
 
   // Assuming Go backend is running locally on port 8080.
-  // For Android emulator, use 10.0.2.2. For Windows/iOS simulator, use localhost.
-  static const String baseUrl = 'http://localhost:8080/api/v1';
+  // For Android emulator, use 10.0.2.2. For Windows/iOS simulator, use 127.0.0.1.
+  static const String baseUrl = 'http://127.0.0.1:8080/api/v1';
 
   ApiService() : _dio = Dio(BaseOptions(baseUrl: baseUrl, connectTimeout: const Duration(seconds: 10)));
 

@@ -45,10 +45,33 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Video Surface
-                      const AspectRatio(
+                      // Video or Album Art Surface
+                      AspectRatio(
                         aspectRatio: 16 / 9,
-                        child: VideoPlayerView(),
+                        child: playerState.hasVideo
+                            ? const VideoPlayerView()
+                            : Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black26,
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  image: playerState.currentSong?.thumbnail.isNotEmpty == true
+                                      ? DecorationImage(
+                                          image: NetworkImage(playerState.currentSong!.thumbnail),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.5),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    )
+                                  ],
+                                ),
+                                child: playerState.currentSong?.thumbnail.isEmpty == true
+                                    ? const Center(child: Icon(Icons.music_note, size: 64, color: Colors.white24))
+                                    : null,
+                              ),
                       ),
                     ],
                   )

@@ -13,6 +13,7 @@ class PlayerState {
   final Duration position;
   final Duration duration;
   final Color? dominantColor;
+  final bool hasVideo;
 
   PlayerState({
     this.currentSong,
@@ -21,6 +22,7 @@ class PlayerState {
     this.position = Duration.zero,
     this.duration = Duration.zero,
     this.dominantColor,
+    this.hasVideo = false,
   });
 
   PlayerState copyWith({
@@ -30,6 +32,7 @@ class PlayerState {
     Duration? position,
     Duration? duration,
     Color? dominantColor,
+    bool? hasVideo,
   }) {
     return PlayerState(
       currentSong: currentSong ?? this.currentSong,
@@ -38,6 +41,7 @@ class PlayerState {
       position: position ?? this.position,
       duration: duration ?? this.duration,
       dominantColor: dominantColor ?? this.dominantColor,
+      hasVideo: hasVideo ?? this.hasVideo,
     );
   }
 }
@@ -56,6 +60,11 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
     });
     _player.stream.duration.listen((dur) {
       if (mounted) state = state.copyWith(duration: dur);
+    });
+    _player.stream.videoParams.listen((params) {
+      if (mounted) {
+        state = state.copyWith(hasVideo: params.w != null && params.w! > 0);
+      }
     });
     _player.stream.error.listen((error) {
       if (mounted) state = state.copyWith(isLoading: false);

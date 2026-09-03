@@ -31,49 +31,51 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
   }
 
-  Widget _buildList(List<Song> items, bool isTrack) {
-    if (items.isEmpty) {
-      return const Center(child: Text("No results found.", style: TextStyle(color: Colors.white54)));
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return ListTile(
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(isTrack ? 8.0 : 25.0),
+  Widget _buildItem(Song item, String type) {
+    final bool isArtist = type == 'Artist';
+    final bool isTrack = type == 'Song';
+    
+    // Format subtitle properly
+    String formattedSubtitle = isArtist ? 'Artist' : '$type • ${item.artist}';
+    
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      leading: Stack(
+        alignment: Alignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(isArtist ? 28.0 : 4.0),
             child: Image.network(
               item.thumbnail,
-              width: 50,
-              height: 50,
+              width: 56,
+              height: 56,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                width: 50,
-                height: 50,
+                width: 56,
+                height: 56,
                 color: Colors.white10,
                 child: const Icon(Icons.music_note, color: Colors.white54),
               ),
             ),
           ),
-          title: Text(item.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          subtitle: Text(item.artist, style: const TextStyle(color: Colors.white54)),
-          trailing: isTrack
-              ? IconButton(
-                  icon: const Icon(Icons.play_circle_fill, color: Colors.white),
-                  onPressed: () {
-                    ref.read(playerProvider.notifier).play(item);
-                  },
-                )
-              : null,
-          onTap: () {
-            if (isTrack) {
-              ref.read(playerProvider.notifier).play(item);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Profile page not implemented yet for ${item.title}")));
-            }
-          },
-        );
+          if (!isArtist)
+            Container(
+              width: 56,
+              height: 56,
+              color: Colors.black26,
+              child: const Icon(Icons.play_arrow, color: Colors.white, size: 30),
+            ),
+        ],
+      ),
+      title: Text(item.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+      subtitle: Text(formattedSubtitle, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+      trailing: isArtist ? const Icon(Icons.verified, color: Colors.greenAccent, size: 18) : const Icon(Icons.more_vert, color: Colors.white54),
+      onTap: () {
+        if (isTrack) {
+          ref.read(playerProvider.notifier).play(item);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Page not implemented yet for ${item.title}")));
+        }
       },
     );
   }
@@ -82,52 +84,69 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final searchResults = ref.watch(searchResultsProvider);
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: GlassContainer(
-            borderRadius: BorderRadius.circular(8.0),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextField(
-              controller: _controller,
-              onChanged: _onSearchChanged,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Search songs, artists, albums...',
-                hintStyle: TextStyle(color: Colors.white54),
-                border: InputBorder.none,
-                icon: Icon(Icons.search, color: Colors.white54),
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        title: GlassContainer(
+          borderRadius: BorderRadius.circular(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: TextField(
+            controller: _controller,
+            onChanged: _onSearchChanged,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              hintText: 'Search songs, artists, albums...',
+              hintStyle: TextStyle(color: Colors.white54),
+              border: InputBorder.none,
+              icon: Icon(Icons.search, color: Colors.white54),
             ),
           ),
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            tabs: [
-              Tab(text: "Songs"),
-              Tab(text: "Artists"),
-              Tab(text: "Albums"),
-            ],
-          ),
         ),
-        body: searchResults.when(
-          data: (data) {
-            if (data.tracks.isEmpty && data.artists.isEmpty && data.albums.isEmpty && _controller.text.isEmpty) {
-              return const Center(
-                child: Text("Type something to search", style: TextStyle(color: Colors.white54)),
-              );
-            }
-            return TabBarView(
-              children: [
-                _buildList(data.tracks, true),
-                _buildList(data.artists, false),
-                _buildList(data.albums, false),
-              ],
+      ),
+      body: searchResults.when(
+        data: (data) {
+          if (data.tracks.isEmpty && data.artists.isEmpty && data.albums.isEmpty && _controller.text.isEmpty) {
+            return const Center(
+              child: Text("Type something to search", style: TextStyle(color: Colors.white54)),
             );
-          },
-          loading: () => const Center(child: CircularProgressIndicator(color: Colors.white)),
-          error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
-        ),
+          }
+          
+          if (data.tracks.isEmpty && data.artists.isEmpty && data.albums.isEmpty) {
+            return const Center(
+              child: Text("No results found.", style: TextStyle(color: Colors.white54)),
+            );
+          }
+
+          // Combine them in a logical order (e.g. 1 Top Artist, Top Songs, Albums, Remaining Artists)
+          List<Map<String, dynamic>> combinedList = [];
+          
+          if (data.artists.isNotEmpty) {
+            combinedList.add({'item': data.artists.first, 'type': 'Artist'});
+          }
+          
+          for (var track in data.tracks) {
+            combinedList.add({'item': track, 'type': 'Song'});
+          }
+          
+          for (var album in data.albums) {
+            combinedList.add({'item': album, 'type': 'Album'});
+          }
+          
+          if (data.artists.length > 1) {
+            for (var i = 1; i < data.artists.length; i++) {
+              combinedList.add({'item': data.artists[i], 'type': 'Artist'});
+            }
+          }
+
+          return ListView.builder(
+            itemCount: combinedList.length,
+            itemBuilder: (context, index) {
+              final entry = combinedList[index];
+              return _buildItem(entry['item'] as Song, entry['type'] as String);
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator(color: Colors.white)),
+        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
       ),
     );
   }

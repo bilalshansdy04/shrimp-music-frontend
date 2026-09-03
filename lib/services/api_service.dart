@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../models/song.dart';
 import '../models/universal_search_data.dart';
 import '../models/artist_profile_data.dart';
+import '../models/album_profile_data.dart';
 
 class ApiService {
   final Dio _dio;
@@ -35,6 +36,19 @@ class ApiService {
       throw Exception('Failed to load artist');
     } catch (e) {
       throw Exception('Failed to get artist: $e');
+    }
+  }
+
+  Future<AlbumProfileData> getAlbum(String id) async {
+    try {
+      final response = await _dio.get('/album', queryParameters: {'id': id});
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as Map<String, dynamic>;
+        return AlbumProfileData.fromJson(data);
+      }
+      throw Exception('Failed to load album');
+    } catch (e) {
+      throw Exception('Failed to get album: $e');
     }
   }
 

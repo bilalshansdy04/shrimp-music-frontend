@@ -1,9 +1,10 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/search_provider.dart';
 import '../providers/player_provider.dart';
 import 'artist_screen.dart';
+import 'album_screen.dart';
 import '../theme/glassmorphism.dart';
 import '../models/song.dart';
 
@@ -35,9 +36,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _buildItem(Song item, String type) {
     final bool isArtist = type == 'Artist';
     final bool isTrack = type == 'Song';
+    final bool isAlbum = type == 'Album' || type == 'album';
     
     // Format subtitle properly
-    String formattedSubtitle = isArtist ? 'Artist' : "$type • $item.artist";
+    String formattedSubtitle = isArtist ? 'Artist' : "$type â€¢ $item.artist";
     formattedSubtitle = formattedSubtitle.replaceAll("$item.artist", item.artist);
     
     return ListTile(
@@ -77,6 +79,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ref.read(playerProvider.notifier).play(item);
         } else if (isArtist) {
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => ArtistScreen(artistId: item.id)));
+        } else if (isAlbum) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AlbumScreen(albumId: item.id)));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Page not implemented yet for ${item.title}")));
         }

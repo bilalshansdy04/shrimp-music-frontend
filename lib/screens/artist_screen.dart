@@ -1,8 +1,9 @@
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "../providers/artist_provider.dart";
 import "../providers/player_provider.dart";
 import "../models/song.dart";
+import "album_screen.dart";
 
 class ArtistScreen extends ConsumerWidget {
   final String artistId;
@@ -27,7 +28,11 @@ class ArtistScreen extends ConsumerWidget {
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
-              return Container(
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AlbumScreen(albumId: item.id)));
+                },
+                child: Container(
                 width: 140,
                 margin: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Column(
@@ -42,7 +47,7 @@ class ArtistScreen extends ConsumerWidget {
                     Text(item.artist, style: const TextStyle(color: Colors.white54, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
                   ],
                 ),
-              );
+              ));
             },
           ),
         ),
@@ -143,4 +148,7 @@ class ArtistScreen extends ConsumerWidget {
     );
   }
 }
+
+
+
 

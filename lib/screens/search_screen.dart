@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/search_provider.dart';
 import '../providers/player_provider.dart';
@@ -36,7 +36,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final bool isTrack = type == 'Song';
     
     // Format subtitle properly
-    String formattedSubtitle = isArtist ? 'Artist' : '$type � ${item.artist}';
+    String formattedSubtitle = isArtist ? 'Artist' : "$type • $item.artist";
+    formattedSubtitle = formattedSubtitle.replaceAll("$item.artist", item.artist);
     
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -74,7 +75,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         if (isTrack) {
           ref.read(playerProvider.notifier).play(item);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Page not implemented yet for ${item.title}")));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Page not implemented yet for ")));
         }
       },
     );
@@ -116,7 +117,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             );
           }
 
-          // Combine them in a logical order (e.g. 1 Top Artist, Top Songs, Albums, Remaining Artists)
+          // Combine them in a logical order
           List<Map<String, dynamic>> combinedList = [];
           
           if (data.artists.isNotEmpty) {
@@ -146,9 +147,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator(color: Colors.white)),
-        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+        error: (err, stack) => Center(child: Text("Error: $err", style: const TextStyle(color: Colors.redAccent))),
       ),
     );
   }
 }
-

@@ -6,14 +6,49 @@ class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
 
   @override
-  _AuthScreenState createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  
   bool _isLogin = true;
   bool _isLoading = false;
+  
+  bool _isUsernameChecked = false;
+  bool _isUsernameAvailable = false;
+  bool _isCheckingUsername = false;
+
+  void _checkUsername() async {
+    final username = _usernameController.text.trim();
+    if (username.isEmpty) return;
+
+    setState(() {
+      _isCheckingUsername = true;
+      _isUsernameChecked = false;
+    });
+
+    try {
+      final exists = await ref.read(authProvider.notifier).checkUsername(username);
+      if (mounted) {
+        setState(() {
+          _isUsernameChecked = true;
+          _isUsernameAvailable = !exists;
+        });
+        if (exists) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Username already taken")));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Username is available!"), backgroundColor: Colors.green));
+        }
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+    } finally {
+      if (mounted) setState(() => _isCheckingUsername = false);
+    }
+  }
 
   void _submit() async {
     final username = _usernameController.text.trim();
@@ -24,6 +59,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       return;
     }
 
+    if (!_isLogin) {
+      final confirmPassword = _confirmPasswordController.text.trim();
+      if (password != confirmPassword) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
+        return;
+      }
+      
+      if (!_isUsernameChecked || !_isUsernameAvailable) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please check username availability first")));
+        return;
+      }
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -32,9 +80,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       } else {
         await ref.read(authProvider.notifier).register(username, password);
       }
-      if (mounted) Navigator.of(context).pop(); // Go back to previous screen
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -65,18 +113,56 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 style: TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 32),
-              TextField(
-                controller: _usernameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: "Username",
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: Colors.white10,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                ),
+              
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _usernameController,
+                      style: const TextStyle(color: Colors.white),
+                      onChanged: (val) {
+                        if (!_isLogin && _isUsernameChecked) {
+                          setState(() {
+                            _isUsernameChecked = false;
+                            _isUsernameAvailable = false;
+                          });
+                        }
+                      },
+                      decoration: InputDecoration(
+                        labelText: "Username",
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        filled: true,
+                        fillColor: Colors.white10,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                        suffixIcon: (!_isLogin && _isUsernameChecked) 
+                            ? Icon(_isUsernameAvailable ? Icons.check_circle : Icons.error, 
+                                   color: _isUsernameAvailable ? Colors.green : Colors.red)
+                            : null,
+                      ),
+                    ),
+                  ),
+                  if (!_isLogin) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _isCheckingUsername ? null : _checkUsername,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white24,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: _isCheckingUsername 
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Text("Check"),
+                      ),
+                    )
+                  ]
+                ],
               ),
               const SizedBox(height: 16),
+              
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -89,7 +175,25 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 ),
               ),
+              
+              if (!_isLogin) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: "Confirm Password",
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: Colors.white10,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
+              
               const SizedBox(height: 32),
+              
               if (_isLoading)
                 const CircularProgressIndicator(color: Colors.white)
               else
@@ -107,10 +211,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   ),
                 ),
               const SizedBox(height: 16),
+              
               TextButton(
                 onPressed: () {
                   setState(() {
                     _isLogin = !_isLogin;
+                    _usernameController.clear();
+                    _passwordController.clear();
+                    _confirmPasswordController.clear();
+                    _isUsernameChecked = false;
                   });
                 },
                 child: Text(
@@ -125,5 +234,3 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 }
-
-

@@ -47,6 +47,16 @@ class ApiService {
     }
   }
 
+  Future<bool> checkUsername(String username) async {
+    final response = await Dio().post('$authUrl/check-username', data: {
+      'email': username,
+    });
+    if (response.statusCode == 200) {
+      return response.data['exists'] as bool;
+    }
+    throw Exception('Failed to check username');
+  }
+
   Future<UniversalSearchData> searchSongs(String query) async {
     try {
       final response = await _dio.get('/search', queryParameters: {'q': query, 'type': 'all'});

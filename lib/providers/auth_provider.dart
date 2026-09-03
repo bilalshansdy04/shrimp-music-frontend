@@ -50,6 +50,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await login(username, password);
   }
 
+  Future<bool> checkUsername(String username) async {
+    return await ref.read(apiServiceProvider).checkUsername(username);
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("token");

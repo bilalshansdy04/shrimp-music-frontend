@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../models/song.dart';
 import '../models/universal_search_data.dart';
@@ -27,24 +27,38 @@ class ApiService {
   }
 
   Future<String> login(String username, String password) async {
-    final response = await Dio().post('$authUrl/login', data: {
-      'email': username,
-      'password': password,
-      'device_name': 'Web/Desktop Client'
-    });
-    if (response.statusCode == 200) {
-      return response.data['token'];
+    try {
+      final response = await Dio().post('$authUrl/login', data: {
+        'email': username,
+        'password': password,
+        'device_name': 'Web/Desktop Client'
+      });
+      if (response.statusCode == 200) {
+        return response.data['token'];
+      }
+      throw Exception('Failed to login');
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(e.response?.data.toString().trim() ?? 'Login failed');
+      }
+      throw Exception(e.message);
     }
-    throw Exception('Failed to login');
   }
 
   Future<void> register(String username, String password) async {
-    final response = await Dio().post('$authUrl/register', data: {
-      'email': username,
-      'password': password,
-    });
-    if (response.statusCode != 201) {
-      throw Exception('Failed to register');
+    try {
+      final response = await Dio().post('$authUrl/register', data: {
+        'email': username,
+        'password': password,
+      });
+      if (response.statusCode != 201) {
+        throw Exception('Failed to register');
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(e.response?.data.toString().trim() ?? 'Registration failed');
+      }
+      throw Exception(e.message);
     }
   }
 

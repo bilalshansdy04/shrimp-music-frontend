@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/search_provider.dart';
 import '../providers/player_provider.dart';
+import 'artist_screen.dart';
 import '../theme/glassmorphism.dart';
 import '../models/song.dart';
-import 'dart:async';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -74,8 +75,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       onTap: () {
         if (isTrack) {
           ref.read(playerProvider.notifier).play(item);
+        } else if (isArtist) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => ArtistScreen(artistId: item.id)));
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Page not implemented yet for ")));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Page not implemented yet for ${item.title}")));
         }
       },
     );

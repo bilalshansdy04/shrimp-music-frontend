@@ -32,42 +32,60 @@ class HomeScreen extends ConsumerWidget {
             Consumer(
               builder: (context, ref, child) {
                 final auth = ref.watch(authProvider);
-                return IconButton(
-                  icon: Icon(
-                    auth.isAuthenticated ? Icons.account_circle : Icons.login,
-                    color: auth.isAuthenticated ? Colors.greenAccent : Colors.white,
-                  ),
-                  onPressed: () {
-                    if (auth.isAuthenticated) {
-                      // Show logout dialog
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          backgroundColor: Colors.grey[900],
-                          title: Text('Logout', style: const TextStyle(color: Colors.white)),
-                          content: Text('Logged in as ${auth.username}. Do you want to logout?', style: const TextStyle(color: Colors.white70)),
-                          actions: [
-                            TextButton(
-                              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                            TextButton(
-                              child: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
-                              onPressed: () {
-                                ref.read(authProvider.notifier).logout();
-                                Navigator.pop(context);
-                              },
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      if (auth.isAuthenticated) {
+                        // Show logout dialog
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: Colors.grey[900],
+                            title: const Text('Account', style: TextStyle(color: Colors.white)),
+                            content: Text('Logged in as ${auth.username}. Do you want to logout?', style: const TextStyle(color: Colors.white70)),
+                            actions: [
+                              TextButton(
+                                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              TextButton(
+                                child: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
+                                onPressed: () {
+                                  ref.read(authProvider.notifier).logout();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AuthScreen()),
+                        );
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            auth.isAuthenticated ? Icons.account_circle : Icons.login,
+                            color: auth.isAuthenticated ? Colors.greenAccent : Colors.white,
+                          ),
+                          if (auth.isAuthenticated) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              auth.username ?? 'User',
+                              style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold),
                             ),
                           ],
-                        ),
-                      );
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AuthScreen()),
-                      );
-                    }
-                  },
+                        ],
+                      ),
+                    ),
+                  ),
                 );
               },
             ),

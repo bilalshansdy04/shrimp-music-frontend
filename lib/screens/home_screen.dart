@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'search_screen.dart';
+import 'auth_screen.dart';
 import '../widgets/video_player_view.dart';
 import '../providers/player_provider.dart';
+import '../providers/auth_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -24,6 +26,48 @@ class HomeScreen extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const SearchScreen()),
+                );
+              },
+            ),
+            Consumer(
+              builder: (context, ref, child) {
+                final auth = ref.watch(authProvider);
+                return IconButton(
+                  icon: Icon(
+                    auth.isAuthenticated ? Icons.account_circle : Icons.login,
+                    color: auth.isAuthenticated ? Colors.greenAccent : Colors.white,
+                  ),
+                  onPressed: () {
+                    if (auth.isAuthenticated) {
+                      // Show logout dialog
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: Colors.grey[900],
+                          title: Text('Logout', style: const TextStyle(color: Colors.white)),
+                          content: Text('Logged in as ${auth.username}. Do you want to logout?', style: const TextStyle(color: Colors.white70)),
+                          actions: [
+                            TextButton(
+                              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            TextButton(
+                              child: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
+                              onPressed: () {
+                                ref.read(authProvider.notifier).logout();
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AuthScreen()),
+                      );
+                    }
+                  },
                 );
               },
             ),

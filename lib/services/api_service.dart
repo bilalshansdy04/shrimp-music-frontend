@@ -6,12 +6,46 @@ import '../models/album_profile_data.dart';
 
 class ApiService {
   final Dio _dio;
+  final String baseUrl = 'http://127.0.0.1:8080/api/v1';
+  final String authUrl = 'http://127.0.0.1:8080/api/auth';
+  String? _token;
 
-  // Assuming Go backend is running locally on port 8080.
-  // For Android emulator, use 10.0.2.2. For Windows/iOS simulator, use 127.0.0.1.
-  static const String baseUrl = 'http://127.0.0.1:8080/api/v1';
+  ApiService() : _dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:8080/api/v1', connectTimeout: const Duration(seconds: 10))) {
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        if (_token != null) {
+          options.headers['Authorization'] = 'Bearer $_token';
+        }
+        return handler.next(options);
+      },
+    ));
+  }
 
-  ApiService() : _dio = Dio(BaseOptions(baseUrl: baseUrl, connectTimeout: const Duration(seconds: 10)));
+  void setToken(String? token) {
+    _token = token;
+  }
+
+  Future<String> login(String username, String password) async {
+    final response = await Dio().post('$authUrl/login', data: {
+      'email': username,
+      'password': password,
+      'device_name': 'Web/Desktop Client'
+    });
+    if (response.statusCode == 200) {
+      return response.data['token'];
+    }
+    throw Exception('Failed to login');
+  }
+
+  Future<void> register(String username, String password) async {
+    final response = await Dio().post('$authUrl/register', data: {
+      'email': username,
+      'password': password,
+    });
+    if (response.statusCode != 201) {
+      throw Exception('Failed to register');
+    }
+  }
 
   Future<UniversalSearchData> searchSongs(String query) async {
     try {

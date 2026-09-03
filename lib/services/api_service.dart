@@ -1,3 +1,4 @@
+﻿import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../models/song.dart';
 import '../models/universal_search_data.dart';
@@ -52,6 +53,10 @@ class ApiService {
       'email': username,
     });
     if (response.statusCode == 200) {
+      if (response.data is String) {
+        
+        return jsonDecode(response.data)['exists'] as bool;
+      }
       return response.data['exists'] as bool;
     }
     throw Exception('Failed to check username');
@@ -110,3 +115,5 @@ class ApiService {
     }
   }
 }
+
+

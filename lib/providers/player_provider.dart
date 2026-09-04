@@ -59,12 +59,16 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
   late final VideoController videoController = VideoController(_player);
   final Ref _ref;
 
+  bool _isDebouncingAutoNext = false;
+
   PlayerNotifier(this._ref) : super(PlayerState()) {
     _player.stream.playing.listen((playing) {
       if (mounted) state = state.copyWith(isPlaying: playing, isLoading: false);
+      _checkAutoNext();
     });
     _player.stream.position.listen((pos) {
       if (mounted) state = state.copyWith(position: pos);
+      _checkAutoNext();
     });
     _player.stream.duration.listen((dur) {
       if (mounted) state = state.copyWith(duration: dur);
@@ -80,8 +84,26 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
     });
     _player.stream.completed.listen((completed) {
       if (completed) {
-        playNext();
+        _triggerAutoNext();
       }
+    });
+  }
+
+  void _checkAutoNext() {
+    if (state.duration.inSeconds == 0 || state.isLoading) return;
+    // Increase tolerance to 5 seconds because stream EOF often happens before metadata duration
+    final isNearEnd = state.position.inSeconds >= state.duration.inSeconds - 5;
+    if (isNearEnd && !state.isPlaying) {
+      _triggerAutoNext();
+    }
+  }
+
+  void _triggerAutoNext() {
+    if (_isDebouncingAutoNext) return;
+    _isDebouncingAutoNext = true;
+    playNext();
+    Future.delayed(const Duration(seconds: 3), () {
+      _isDebouncingAutoNext = false;
     });
   }
 
@@ -97,6 +119,11 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
     if (nextIndex < state.queue.length) {
       state = state.copyWith(queueIndex: nextIndex);
       play(state.queue[nextIndex]);
+    } else {
+      // Loop back to start if we want, or just stop
+      state = state.copyWith(queueIndex: 0);
+      seek(Duration.zero);
+      _player.pause();
     }
   }
 
@@ -174,4 +201,7 @@ final playerProvider = StateNotifierProvider<PlayerNotifier, PlayerState>((ref) 
 final videoControllerProvider = Provider<VideoController>((ref) {
   return ref.watch(playerProvider.notifier).videoController;
 });
+
+
+
 

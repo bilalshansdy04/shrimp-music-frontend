@@ -1,4 +1,5 @@
 ﻿import '../widgets/playlist_dialog.dart';
+import '../widgets/playlist_dialog.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -98,7 +99,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
       trailing: isArtist
           ? const Icon(Icons.verified, color: Colors.greenAccent, size: 18)
-          : const Icon(Icons.more_vert, color: Colors.white54),
+          : IconButton(
+              icon: const Icon(Icons.more_vert, color: Colors.white54),
+              onPressed: () {
+                if (isTrack) {
+                  showAddToPlaylistDialog(context, ref, item);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Only tracks can be added to playlists")));
+                }
+              },
+            ),
       onTap: () {
         if (isTrack) {
           ref.read(playerProvider.notifier).play(item);
@@ -213,4 +223,5 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 }
+
 

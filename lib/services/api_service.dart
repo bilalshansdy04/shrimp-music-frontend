@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../models/song.dart';
 import '../models/universal_search_data.dart';
@@ -74,6 +74,38 @@ class ApiService {
       return response.data['exists'] as bool;
     }
     throw Exception('Failed to check username');
+  }
+
+  Future<List<dynamic>> getPlaylists() async {
+    final response = await _dio.get('/playlists');
+    return response.data;
+  }
+
+  Future<void> createPlaylist(String name, String description) async {
+    await _dio.post('/playlists', data: {'name': name, 'description': description});
+  }
+
+  Future<void> deletePlaylist(String id) async {
+    await _dio.delete('/playlists', queryParameters: {'id': id});
+  }
+
+  Future<List<dynamic>> getPlaylistTracks(String id) async {
+    final response = await _dio.get('/playlists/tracks', queryParameters: {'id': id});
+    return response.data;
+  }
+
+  Future<void> addTrackToPlaylist(String playlistId, Map<String, dynamic> track) async {
+    await _dio.post('/playlists/tracks', queryParameters: {'id': playlistId}, data: {
+      'id': track['id'],
+      'title': track['title'],
+      'artist': track['artist'] ?? '',
+      'thumbnail': track['thumbnail'] ?? '',
+      'duration_seconds': track['duration'] ?? 0,
+    });
+  }
+
+  Future<void> removeTrackFromPlaylist(String playlistId, String trackId) async {
+    await _dio.delete('/playlists/tracks', queryParameters: {'id': playlistId, 'track_id': trackId});
   }
 
   Future<UniversalSearchData> searchSongs(String query) async {

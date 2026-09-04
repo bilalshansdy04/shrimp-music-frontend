@@ -1,3 +1,5 @@
+﻿import '../screens/search_screen.dart';
+import '../screens/library_screen.dart';
 import 'package:flutter/material.dart';
 
 class SidebarDesktop extends StatelessWidget {
@@ -35,9 +37,9 @@ class SidebarDesktop extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 40),
-          _buildNavItem(Icons.home_filled, "Home", true),
-          _buildNavItem(Icons.search, "Search", false),
-          _buildNavItem(Icons.library_music_outlined, "Library", false),
+          InkWell(onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Scaffold())), child: _buildNavItem(Icons.home_filled, "Home", true)),
+          InkWell(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SearchScreen())), child: _buildNavItem(Icons.search, "Search", false)),
+          InkWell(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LibraryScreen())), child: _buildNavItem(Icons.library_music_outlined, "Library", false)),
           
           const Spacer(),
           if (!isCollapsed)
@@ -95,3 +97,4 @@ class SidebarDesktop extends StatelessWidget {
     );
   }
 }
+

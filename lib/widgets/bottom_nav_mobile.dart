@@ -1,3 +1,5 @@
+﻿import '../screens/search_screen.dart';
+import '../screens/library_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/glassmorphism.dart';
 
@@ -20,8 +22,18 @@ class BottomNavMobile extends StatelessWidget {
             BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
             BottomNavigationBarItem(icon: Icon(Icons.library_music), label: 'Library'),
           ],
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            } else if (index == 1) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const SearchScreen()));
+            } else if (index == 2) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const LibraryScreen()));
+            }
+          },
         ),
       ),
     );
   }
 }
+

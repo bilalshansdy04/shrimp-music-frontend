@@ -1,4 +1,5 @@
-﻿import "package:flutter/material.dart";
+﻿import '../widgets/playlist_dialog.dart';
+import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "../providers/artist_provider.dart";
 import "../providers/player_provider.dart";
@@ -123,7 +124,12 @@ class ArtistScreen extends ConsumerWidget {
                         leading: Image.network(track.thumbnail, width: 48, height: 48, fit: BoxFit.cover),
                         title: Text(track.title, style: const TextStyle(color: Colors.white)),
                         subtitle: Text(track.artist, style: const TextStyle(color: Colors.white54)),
-                        trailing: const Icon(Icons.more_vert, color: Colors.white54),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.more_vert, color: Colors.white54),
+                          onPressed: () {
+                            showAddToPlaylistDialog(context, ref, track);
+                          },
+                        ),
                         onTap: () {
                           ref.read(playerProvider.notifier).play(track);
                         },
@@ -148,6 +154,7 @@ class ArtistScreen extends ConsumerWidget {
     );
   }
 }
+
 
 
 

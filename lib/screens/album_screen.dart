@@ -1,3 +1,4 @@
+﻿import '../widgets/playlist_dialog.dart';
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "../providers/album_provider.dart";
@@ -82,7 +83,12 @@ class AlbumScreen extends ConsumerWidget {
                       leading: Text("${index + 1}", style: const TextStyle(color: Colors.white54, fontSize: 16)),
                       title: Text(track.title, style: const TextStyle(color: Colors.white)),
                       subtitle: Text(track.artist, style: const TextStyle(color: Colors.white54)),
-                      trailing: const Icon(Icons.more_vert, color: Colors.white54),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.more_vert, color: Colors.white54),
+                        onPressed: () {
+                          showAddToPlaylistDialog(context, ref, track);
+                        },
+                      ),
                       onTap: () {
                         ref.read(playerProvider.notifier).play(track);
                       },
@@ -100,4 +106,5 @@ class AlbumScreen extends ConsumerWidget {
     );
   }
 }
+
 

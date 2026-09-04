@@ -1,7 +1,13 @@
 ﻿import "package:dio/dio.dart";
 import "package:kuroshiro/kuroshiro.dart";
 import "package:korean_romanization_converter/korean_romanization_converter.dart";
-import "../models/lyric_line.dart";
+
+class LyricData {
+  final String lrc;
+  final String? translation;
+
+  LyricData(this.lrc, this.translation);
+}
 
 class LyricService {
   final Dio _dio = Dio();
@@ -15,73 +21,77 @@ class LyricService {
     }
   }
 
-  Future<List<LyricLine>> fetchLyrics(String trackName, String artistName) async {
+  Future<LyricData?> fetchLyrics(String trackName, String artistName) async {
     try {
       final response = await _dio.get(
-        "https://lrclib.net/api/get",
+        "http://localhost:8080/api/v1/lyrics",
         queryParameters: {
-          "track_name": trackName,
-          "artist_name": artistName,
+          "track": trackName,
+          "artist": artistName,
         },
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final syncedLyrics = response.data["syncedLyrics"];
-        if (syncedLyrics != null && syncedLyrics.toString().isNotEmpty) {
-          return await _parseLrc(syncedLyrics.toString());
+        final lrc = response.data["data"]["lrc"];
+        if (lrc != null && lrc.toString().isNotEmpty) {
+          final translated = await _generateTranslationLrc(lrc.toString());
+          return LyricData(lrc.toString(), translated);
         }
       }
     } catch (e) {
-      print("Failed to fetch lyrics from lrclib: $e");
+      print("Failed to fetch lyrics from backend: $e");
     }
-    return [];
+    return null;
   }
 
-  Future<List<LyricLine>> _parseLrc(String lrcContent) async {
+  Future<String?> _generateTranslationLrc(String lrcContent) async {
     await _initKuroshiro();
     final lines = lrcContent.split("\n");
-    final List<LyricLine> parsedLines = [];
+    final List<String> translationLines = [];
+    bool hasAnyTranslation = false;
 
-    final timeRegex = RegExp(r"\[(\d{2}):(\d{2})\.(\d{2,3})\]");
+    final timeRegex = RegExp(r"^(\[\d{2}:\d{2}\.\d{2,3}\])(.*)");
 
     for (var line in lines) {
       final match = timeRegex.firstMatch(line);
       if (match != null) {
-        final min = int.parse(match.group(1)!);
-        final sec = int.parse(match.group(2)!);
-        String msStr = match.group(3)!;
-        final ms = msStr.length == 2 ? int.parse(msStr) * 10 : int.parse(msStr);
+        final timeTag = match.group(1)!;
+        final text = match.group(2)!.trim();
         
-        final text = line.substring(match.end).trim();
-        if (text.isEmpty) continue;
+        if (text.isEmpty) {
+          translationLines.add(line);
+          continue;
+        }
 
-        String? transliteration;
+        String transliteration = text;
+        bool translated = false;
         
-        // Check for Japanese (Hiragana, Katakana, Kanji)
         bool hasJapanese = RegExp(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]").hasMatch(text);
-        // Check for Korean (Hangul)
         bool hasKorean = RegExp(r"[\uAC00-\uD7A3]").hasMatch(text);
 
         try {
           if (hasJapanese && _kuroshiro != null) {
             transliteration = await _kuroshiro!.convert(text, to: ConvertTo.romaji);
+            translated = true;
           } else if (hasKorean) {
             transliteration = _krConverter.romanize(text);
+            translated = true;
           }
         } catch (e) {
           print("Transliteration error: $e");
         }
 
-        parsedLines.add(LyricLine(
-          time: Duration(minutes: min, seconds: sec, milliseconds: ms),
-          text: text,
-          transliteration: transliteration,
-        ));
+        if (translated) {
+          hasAnyTranslation = true;
+        }
+        
+        translationLines.add("$timeTag $transliteration");
+      } else {
+        translationLines.add(line);
       }
     }
 
-    return parsedLines;
+    return hasAnyTranslation ? translationLines.join("\n") : null;
   }
 }
-
 

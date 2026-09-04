@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../models/song.dart';
 import '../models/universal_search_data.dart';
@@ -78,7 +78,7 @@ class ApiService {
 
   Future<List<dynamic>> getPlaylists() async {
     final response = await _dio.get('/playlists');
-    return response.data;
+    return response.data ?? [];
   }
 
   Future<void> createPlaylist(String name, String description) async {
@@ -91,7 +91,7 @@ class ApiService {
 
   Future<List<dynamic>> getPlaylistTracks(String id) async {
     final response = await _dio.get('/playlists/tracks', queryParameters: {'id': id});
-    return response.data;
+    return response.data ?? [];
   }
 
   Future<void> addTrackToPlaylist(String playlistId, Map<String, dynamic> track) async {
@@ -161,6 +161,7 @@ class ApiService {
     }
   }
 }
+
 
 
 

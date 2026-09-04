@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../models/song.dart';
 import '../models/universal_search_data.dart';
@@ -29,7 +29,7 @@ class ApiService {
   Future<String> login(String username, String password) async {
     try {
       final response = await Dio().post('$authUrl/login', data: {
-        'email': username,
+        'username': username,
         'password': password,
         'device_name': 'Web/Desktop Client'
       });
@@ -48,7 +48,7 @@ class ApiService {
   Future<void> register(String username, String password) async {
     try {
       final response = await Dio().post('$authUrl/register', data: {
-        'email': username,
+        'username': username,
         'password': password,
       });
       if (response.statusCode != 201) {
@@ -64,7 +64,7 @@ class ApiService {
 
   Future<bool> checkUsername(String username) async {
     final response = await Dio().post('$authUrl/check-username', data: {
-      'email': username,
+      'username': username,
     });
     if (response.statusCode == 200) {
       if (response.data is String) {
@@ -129,5 +129,6 @@ class ApiService {
     }
   }
 }
+
 
 

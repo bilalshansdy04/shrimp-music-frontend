@@ -90,7 +90,7 @@ class AlbumScreen extends ConsumerWidget {
                         },
                       ),
                       onTap: () {
-                        ref.read(playerProvider.notifier).play(track);
+                        ref.read(playerProvider.notifier).playQueue(album.tracks, initialIndex: index);
                       },
                     );
                   },
@@ -106,5 +106,6 @@ class AlbumScreen extends ConsumerWidget {
     );
   }
 }
+
 
 

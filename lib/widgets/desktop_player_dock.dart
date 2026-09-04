@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/glassmorphism.dart';
 import '../providers/player_provider.dart';
@@ -109,7 +109,7 @@ class DesktopPlayerDock extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.skip_previous),
                         color: Colors.white,
-                        onPressed: () {},
+                        onPressed: () => ref.read(playerProvider.notifier).playPrevious(),
                       ),
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -138,7 +138,7 @@ class DesktopPlayerDock extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.skip_next),
                         color: Colors.white,
-                        onPressed: () {},
+                        onPressed: () => ref.read(playerProvider.notifier).playNext(),
                       ),
                       IconButton(
                         icon: const Icon(Icons.repeat),
@@ -250,3 +250,4 @@ class DesktopPlayerDock extends ConsumerWidget {
     );
   }
 }
+

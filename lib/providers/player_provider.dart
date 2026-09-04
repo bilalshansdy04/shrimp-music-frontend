@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -14,6 +14,8 @@ class PlayerState {
   final Duration duration;
   final Color? dominantColor;
   final bool hasVideo;
+  final List<Song> queue;
+  final int queueIndex;
 
   PlayerState({
     this.currentSong,
@@ -23,6 +25,8 @@ class PlayerState {
     this.duration = Duration.zero,
     this.dominantColor,
     this.hasVideo = false,
+    this.queue = const [],
+    this.queueIndex = 0,
   });
 
   PlayerState copyWith({
@@ -33,6 +37,8 @@ class PlayerState {
     Duration? duration,
     Color? dominantColor,
     bool? hasVideo,
+    List<Song>? queue,
+    int? queueIndex,
   }) {
     return PlayerState(
       currentSong: currentSong ?? this.currentSong,
@@ -42,6 +48,8 @@ class PlayerState {
       duration: duration ?? this.duration,
       dominantColor: dominantColor ?? this.dominantColor,
       hasVideo: hasVideo ?? this.hasVideo,
+      queue: queue ?? this.queue,
+      queueIndex: queueIndex ?? this.queueIndex,
     );
   }
 }
@@ -70,6 +78,44 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
       if (mounted) state = state.copyWith(isLoading: false);
       print('Player Error: $error');
     });
+    _player.stream.completed.listen((completed) {
+      if (completed) {
+        playNext();
+      }
+    });
+  }
+
+  void playQueue(List<Song> songs, {int initialIndex = 0}) {
+    if (songs.isEmpty) return;
+    state = state.copyWith(queue: songs, queueIndex: initialIndex);
+    play(songs[initialIndex]);
+  }
+
+  void playNext() {
+    if (state.queue.isEmpty) return;
+    final nextIndex = state.queueIndex + 1;
+    if (nextIndex < state.queue.length) {
+      state = state.copyWith(queueIndex: nextIndex);
+      play(state.queue[nextIndex]);
+    }
+  }
+
+  void playPrevious() {
+    if (state.queue.isEmpty) {
+      seek(Duration.zero);
+      return;
+    }
+    if (state.position.inSeconds > 3) {
+      seek(Duration.zero);
+      return;
+    }
+    final prevIndex = state.queueIndex - 1;
+    if (prevIndex >= 0) {
+      state = state.copyWith(queueIndex: prevIndex);
+      play(state.queue[prevIndex]);
+    } else {
+      seek(Duration.zero);
+    }
   }
 
   Future<void> play(Song song) async {
@@ -128,3 +174,4 @@ final playerProvider = StateNotifierProvider<PlayerNotifier, PlayerState>((ref) 
 final videoControllerProvider = Provider<VideoController>((ref) {
   return ref.watch(playerProvider.notifier).videoController;
 });
+

@@ -131,7 +131,7 @@ class ArtistScreen extends ConsumerWidget {
                           },
                         ),
                         onTap: () {
-                          ref.read(playerProvider.notifier).play(track);
+                          ref.read(playerProvider.notifier).playQueue(artist.topSongs, initialIndex: index);
                         },
                       );
                     },
@@ -154,6 +154,7 @@ class ArtistScreen extends ConsumerWidget {
     );
   }
 }
+
 
 
 

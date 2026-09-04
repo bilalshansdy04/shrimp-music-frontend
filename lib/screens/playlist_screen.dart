@@ -58,7 +58,8 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                   onPressed: () => _removeTrack(song.id),
                 ),
                 onTap: () {
-                  ref.read(playerProvider.notifier).play(song);
+                  final songList = tracks.map((pt) => pt.track).toList();
+                  ref.read(playerProvider.notifier).playQueue(songList, initialIndex: index);
                 },
               );
             },
@@ -68,6 +69,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     );
   }
 }
+
 
 
 

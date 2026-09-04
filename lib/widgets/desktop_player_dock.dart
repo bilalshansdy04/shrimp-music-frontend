@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'queue_sheet.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/glassmorphism.dart';
 import '../providers/player_provider.dart';
@@ -216,7 +217,9 @@ class DesktopPlayerDock extends ConsumerWidget {
                     icon: const Icon(Icons.queue_music),
                     color: Colors.white54,
                     iconSize: 20,
-                    onPressed: () {},
+                    onPressed: () {
+                      showQueueSheet(context);
+                    },
                   ),
                   const SizedBox(width: 8),
                   const Icon(Icons.volume_up, color: Colors.white54, size: 20),
@@ -250,4 +253,5 @@ class DesktopPlayerDock extends ConsumerWidget {
     );
   }
 }
+
 

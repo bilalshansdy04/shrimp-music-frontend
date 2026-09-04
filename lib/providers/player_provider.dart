@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -60,8 +61,12 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
   final Ref _ref;
 
   bool _isDebouncingAutoNext = false;
+  Timer? _timer;
 
   PlayerNotifier(this._ref) : super(PlayerState()) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) _checkAutoNext();
+    });
     _player.stream.playing.listen((playing) {
       if (mounted) state = state.copyWith(isPlaying: playing, isLoading: false);
       _checkAutoNext();
@@ -91,9 +96,9 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
 
   void _checkAutoNext() {
     if (state.duration.inSeconds == 0 || state.isLoading) return;
-    // Increase tolerance to 5 seconds because stream EOF often happens before metadata duration
-    final isNearEnd = state.position.inSeconds >= state.duration.inSeconds - 5;
-    if (isNearEnd && !state.isPlaying) {
+    // Trigger auto next if we are within 2 seconds of the end, regardless of whether playing is true or false
+    final isNearEnd = state.position.inSeconds >= state.duration.inSeconds - 2;
+    if (isNearEnd) {
       _triggerAutoNext();
     }
   }
@@ -189,6 +194,7 @@ class PlayerNotifier extends StateNotifier<PlayerState> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _player.dispose();
     super.dispose();
   }
@@ -201,6 +207,8 @@ final playerProvider = StateNotifierProvider<PlayerNotifier, PlayerState>((ref) 
 final videoControllerProvider = Provider<VideoController>((ref) {
   return ref.watch(playerProvider.notifier).videoController;
 });
+
+
 
 
 

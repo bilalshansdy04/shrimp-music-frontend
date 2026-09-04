@@ -1,4 +1,5 @@
-﻿import 'queue_sheet.dart';
+﻿import 'lyrics_sheet.dart';
+import 'queue_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/glassmorphism.dart';
@@ -211,7 +212,9 @@ class DesktopPlayerDock extends ConsumerWidget {
                     icon: const Icon(Icons.lyrics_outlined),
                     color: Colors.white54,
                     iconSize: 20,
-                    onPressed: () {},
+                    onPressed: () {
+                      showLyricsSheet(context);
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.queue_music),
@@ -253,5 +256,6 @@ class DesktopPlayerDock extends ConsumerWidget {
     );
   }
 }
+
 
 
